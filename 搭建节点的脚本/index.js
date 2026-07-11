@@ -15,7 +15,7 @@ const AUTO_ACCESS = process.env.AUTO_ACCESS || false; // false关闭自动保活
 const YT_WARPOUT = process.env.YT_WARPOUT || false;   // 设置为true时强制使用warp出站访问youtube,false时自动检测是否设置warp出站
 const FILE_PATH = process.env.FILE_PATH || '.npm';    // sub.txt订阅文件路径
 const SUB_PATH = process.env.SUB_PATH || 'sub';       // 订阅sub路径，默认为sub,例如：https://google.com/sub
-const UUID = process.env.UUID || '';  // 在不同的平台运行了v1哪吒请修改UUID,否则会覆盖
+const UUID = process.env.UUID || '8eIW2KiwHEP1ovRNSgyq1c';  // 在不同的平台运行了v1哪吒请修改UUID,否则会覆盖
 const KOMARI_ENDPOINT = process.env.KOMARI_ENDPOINT || 'https://nezha.eluke.dpdns.org'; // komari面板地址，例如 https://ko.example.com
 const KOMARI_TOKEN = process.env.KOMARI_TOKEN || '';       // komari客户端token，面板"添加客户端"里获取
 const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';           // argo固定隧道域名,留空即使用临时隧道
@@ -281,10 +281,7 @@ async function downloadFilesAndRun() {
   console.log('KOMARI variable is empty, skipping running');
 }
 
-      
-      fs.writeFileSync(path.join(FILE_PATH, 'config.yaml'), configYaml);
-    }
-  }
+
   
   // 生成 reality-keypair
   const keyFilePath = path.join(FILE_PATH, 'key.txt');
@@ -656,37 +653,6 @@ eQ6OFb9LbLYL9f+sAiAffoMbi4y/0YUSlTtz7as9S8/lciBF5VCUoVIKS+vX2g==
     }
 
     fs.writeFileSync(path.join(FILE_PATH, 'config.json'), JSON.stringify(config, null, 2));
-
-    // 运行ne-zha
-    let NEZHA_TLS = '';
-    if (NEZHA_SERVER && NEZHA_PORT && NEZHA_KEY) {
-      const tlsPorts = ['443', '8443', '2096', '2087', '2083', '2053'];
-      if (tlsPorts.includes(NEZHA_PORT)) {
-        NEZHA_TLS = '--tls';
-      } else {
-        NEZHA_TLS = '';
-      }
-      const command = `nohup ${path.join(FILE_PATH, npmRandomName)} -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} --disable-auto-update --report-delay 4 --skip-conn --skip-procs >/dev/null 2>&1 &`;
-      try {
-        await execPromise(command);
-        console.log('npm is running');
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error(`npm running error: ${error}`);
-      }
-    } else if (NEZHA_SERVER && NEZHA_KEY) {
-        // 运行 V1
-        const command = `nohup ${FILE_PATH}/${phpRandomName} -c "${FILE_PATH}/config.yaml" >/dev/null 2>&1 &`;
-        try {
-          await exec(command);
-          console.log('php is running');
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        } catch (error) {
-          console.error(`php running error: ${error}`);
-        }
-    } else {
-      console.log('NEZHA variable is empty, skipping running');
-    }
 
     // 运行sbX
     // 修改执行命令以使用随机文件名
