@@ -280,25 +280,7 @@ async function downloadFilesAndRun() {
 } else {
   console.log('KOMARI variable is empty, skipping running');
 }
-client_secret: ${NEZHA_KEY}
-debug: false
-disable_auto_update: true
-disable_command_execute: false
-disable_force_update: true
-disable_nat: false
-disable_send_query: false
-gpu: false
-insecure_tls: true
-ip_report_period: 1800
-report_delay: 4
-server: ${NEZHA_SERVER}
-skip_connection_count: true
-skip_procs_count: true
-temperature: false
-tls: ${nezhatls}
-use_gitee_to_upgrade: false
-use_ipv6_country_code: false
-uuid: ${UUID}`;
+
       
       fs.writeFileSync(path.join(FILE_PATH, 'config.yaml'), configYaml);
     }
