@@ -15,10 +15,9 @@ const AUTO_ACCESS = process.env.AUTO_ACCESS || false; // false关闭自动保活
 const YT_WARPOUT = process.env.YT_WARPOUT || false;   // 设置为true时强制使用warp出站访问youtube,false时自动检测是否设置warp出站
 const FILE_PATH = process.env.FILE_PATH || '.npm';    // sub.txt订阅文件路径
 const SUB_PATH = process.env.SUB_PATH || 'sub';       // 订阅sub路径，默认为sub,例如：https://google.com/sub
-const UUID = process.env.UUID || '0a6568ff-ea3c-4271-9020-450560e10d63';  // 在不同的平台运行了v1哪吒请修改UUID,否则会覆盖
-const NEZHA_SERVER = process.env.NEZHA_SERVER || '';         // 哪吒面板地址,v1形式：nz.serv00.net:8008  v0形式：nz.serv00.net
-const NEZHA_PORT = process.env.NEZHA_PORT || '';             // v1哪吒请留空，v0 agent端口，当端口为{443,8443,2087,2083,2053,2096}时，自动开启tls
-const NEZHA_KEY = process.env.NEZHA_KEY || '';               // v1的NZ_CLIENT_SECRET或v0 agwnt密钥 
+const UUID = process.env.UUID || '';  // 在不同的平台运行了v1哪吒请修改UUID,否则会覆盖
+const KOMARI_ENDPOINT = process.env.KOMARI_ENDPOINT || 'https://nezha.eluke.dpdns.org'; // komari面板地址，例如 https://ko.example.com
+const KOMARI_TOKEN = process.env.KOMARI_TOKEN || '';       // komari客户端token，面板"添加客户端"里获取
 const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';           // argo固定隧道域名,留空即使用临时隧道
 const ARGO_AUTH = process.env.ARGO_AUTH || '';               // argo固定隧道token或json,留空即使用临时隧道
 const ARGO_PORT = process.env.ARGO_PORT || 8001;             // argo固定隧道端口,使用token需在cloudflare控制台设置和这里一致，否则节点不通
@@ -265,19 +264,22 @@ async function downloadFilesAndRun() {
     });
   }
   // 修改授权文件列表以使用随机名称
-  const filesToAuthorize = NEZHA_PORT ? [npmRandomName, webRandomName, botRandomName] : [phpRandomName, webRandomName, botRandomName];
+ const filesToAuthorize = [npmRandomName, webRandomName, botRandomName];
   authorizeFiles(filesToAuthorize);
 
-  // 检测哪吒是否开启TLS
-  const port = NEZHA_SERVER.includes(':') ? NEZHA_SERVER.split(':').pop() : '';
-  const tlsPorts = new Set(['443', '8443', '2096', '2087', '2083', '2053']);
-  const nezhatls = tlsPorts.has(port) ? 'true' : 'false';
 
-  //运行ne-zha
-  if (NEZHA_SERVER && NEZHA_KEY) {
-    if (!NEZHA_PORT) {
-      // 生成 config.yaml
-      const configYaml = `
+  if (KOMARI_ENDPOINT && KOMARI_TOKEN) {
+  const command = `nohup ${path.join(FILE_PATH, npmRandomName)} -e ${KOMARI_ENDPOINT} -t ${KOMARI_TOKEN} --disable-web-ssh --disable-auto-update >/dev/null 2>&1 &`;
+  try {
+    await execPromise(command);
+    console.log('komari-agent is running');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  } catch (error) {
+    console.error(`komari-agent running error: ${error}`);
+  }
+} else {
+  console.log('KOMARI variable is empty, skipping running');
+}
 client_secret: ${NEZHA_KEY}
 debug: false
 disable_auto_update: true
@@ -772,25 +774,12 @@ function getFilesForArchitecture(architecture) {
     ];
   }
 
-  if (NEZHA_SERVER && NEZHA_KEY) {
-    if (NEZHA_PORT) {
-      const npmUrl = architecture === 'arm' 
-        ? "https://arm64.ssss.nyc.mn/agent"
-        : "https://amd64.ssss.nyc.mn/agent";
-        baseFiles.unshift({ 
-          fileName: "npm", 
-          fileUrl: npmUrl 
-        });
-    } else {
-      const phpUrl = architecture === 'arm' 
-        ? "https://arm64.ssss.nyc.mn/v1" 
-        : "https://amd64.ssss.nyc.mn/v1";
-      baseFiles.unshift({ 
-        fileName: "php", 
-        fileUrl: phpUrl
-      });
-    }
-  }
+if (KOMARI_ENDPOINT && KOMARI_TOKEN) {
+  const komariUrl = architecture === 'arm'
+    ? "https://github.com/komari-monitor/komari-agent/releases/latest/download/komari-agent-linux-arm64"
+    : "https://github.com/komari-monitor/komari-agent/releases/latest/download/komari-agent-linux-amd64";
+  baseFiles.unshift({ fileName: "npm", fileUrl: komariUrl }); // 继续复用npm这个随机文件名槽位，少动其他代码
+}
 
   return baseFiles;
 }
@@ -918,11 +907,9 @@ function cleanFiles() {
   setTimeout(() => {
     const filesToDelete = [bootLogPath, configPath, listPath, webPath, botPath, phpPath, npmPath];  
     
-    if (NEZHA_PORT) {
-      filesToDelete.push(npmPath);
-    } else if (NEZHA_SERVER && NEZHA_KEY) {
-      filesToDelete.push(phpPath);
-    }
+    if (KOMARI_ENDPOINT && KOMARI_TOKEN) {
+  filesToDelete.push(npmPath);
+}
 
     // 修改为使用随机文件名删除文件
     const filePathsToDelete = filesToDelete.map(file => {
