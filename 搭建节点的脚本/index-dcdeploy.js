@@ -19,8 +19,8 @@ const PROJECT_URL = process.env.PROJECT_URL || '';
 const AUTO_ACCESS = process.env.AUTO_ACCESS || false;
 const YT_WARPOUT = process.env.YT_WARPOUT || false;
 const FILE_PATH = process.env.FILE_PATH || '.npm';
-const SUB_PATH = process.env.SUB_PATH || 'sub';
-const UUID = process.env.UUID || 'c27e0e4c-b504-4832-b675-8a09701a999e';
+const SUB_PATH = process.env.SUB_PATH || 'lumenattte';
+const UUID = process.env.UUID || '94ec543f-c850-44e7-a61a-f84f9a8d51d1';
 const KOMARI_ENDPOINT = process.env.KOMARI_ENDPOINT || '';
 const KOMARI_TOKEN = process.env.KOMARI_TOKEN || '';
 const CFIP = process.env.CFIP || 'cdns.doon.eu.org';
@@ -235,14 +235,6 @@ async function runArgoTunnel() {
     // 改为指向 Express (PORT 通常是 3000)
     args = `tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile ${bootLogPath} --loglevel info --url http://localhost:${PORT}`;
   }
-
-  try {
-    await exec(`nohup ${botPath} ${args} >/dev/null 2>&1 &`);
-    console.log('cloudflared (Argo 隧道) 已在后台启动');
-  } catch (e) {
-    console.error('cloudflared 启动失败:', e);
-  }
-}
 
   try {
     await exec(`nohup ${botPath} ${args} >/dev/null 2>&1 &`);
