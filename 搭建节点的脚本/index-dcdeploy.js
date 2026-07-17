@@ -228,15 +228,21 @@ async function runArgoTunnel() {
 
   let args;
   if (ARGO_AUTH.match(/^[A-Z0-9a-z=]{120,250}$/)) {
-    // Token 形式：需在 Cloudflare Zero Trust -> Public Hostname 中把 ARGO_DOMAIN 指向 http://localhost:ARGO_PORT
     args = `tunnel --edge-ip-version auto --no-autoupdate --protocol http2 run --token ${ARGO_AUTH}`;
   } else if (ARGO_AUTH.match(/TunnelSecret/)) {
-    // 固定隧道 JSON 凭证形式，读取上面 argoType() 生成的 tunnel.yml
     args = `tunnel --edge-ip-version auto --config ${path.join(FILE_PATH, 'tunnel.yml')} run`;
   } else {
-    // 临时隧道：不需要任何 Cloudflare 账号配置，域名会打印在 boot.log 里
-    args = `tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile ${bootLogPath} --loglevel info --url http://localhost:${ARGO_PORT}`;
+    // 改为指向 Express (PORT 通常是 3000)
+    args = `tunnel --edge-ip-version auto --no-autoupdate --protocol http2 --logfile ${bootLogPath} --loglevel info --url http://localhost:${PORT}`;
   }
+
+  try {
+    await exec(`nohup ${botPath} ${args} >/dev/null 2>&1 &`);
+    console.log('cloudflared (Argo 隧道) 已在后台启动');
+  } catch (e) {
+    console.error('cloudflared 启动失败:', e);
+  }
+}
 
   try {
     await exec(`nohup ${botPath} ${args} >/dev/null 2>&1 &`);
