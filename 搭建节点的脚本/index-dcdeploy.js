@@ -30,7 +30,7 @@ const BOT_TOKEN = process.env.BOT_TOKEN || '';
 // 新增：Argo 隧道相关变量
 const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';   // 固定隧道域名，留空则使用临时隧道(trycloudflare.com)
 const ARGO_AUTH = process.env.ARGO_AUTH || '';       // 固定隧道 Token 或 TunnelSecret JSON，留空则使用临时隧道
-const ARGO_PORT = process.env.ARGO_PORT || 8001;     // 内核本地监听端口，cloudflared 会将隧道流量转发到这个端口
+const ARGO_PORT = process.env.ARGO_PORT || 8005;     // 内核本地监听端口，cloudflared 会将隧道流量转发到这个端口
 
 // 创建运行文件夹
 if (!fs.existsSync(FILE_PATH)) {
