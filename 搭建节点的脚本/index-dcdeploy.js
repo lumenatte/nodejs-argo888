@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+const http = require("http");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const WebSocket = require('ws');
 const express = require("express");
 const app = express();
 const axios = require("axios");
@@ -347,4 +350,22 @@ async function startserver() {
 }
 startserver();
 
-app.listen(PORT, () => console.log(`服务启动完成，正在监听端口: ${PORT}`));
+const server = http.createServer(app);
+
+// 处理 WebSocket 升级
+server.on('upgrade', (req, socket, head) => {
+  if (req.url.startsWith('/vmess-argo')) {
+    const target = `ws://127.0.0.1:${ARGO_PORT}${req.url}`;
+    console.log(`代理 WebSocket 请求: ${req.url} -> ${target}`);
+    
+    const proxy = createProxyMiddleware({
+      target: target,
+      ws: true,
+      changeOrigin: true,
+      logLevel: 'error'
+    });
+    proxy(req, socket, head);
+  }
+});
+
+server.listen(PORT, () => console.log(`服务启动完成，正在监听端口: ${PORT}`));
